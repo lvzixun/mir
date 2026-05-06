@@ -7,6 +7,8 @@
 *.so
 *.so.*
 *.a
+*.dylib
 /mir-run
+/mir-bin-run
 /build
 /.cache
