@@ -9474,6 +9474,7 @@ static void *generate_func_code (MIR_context_t ctx, MIR_item_t func_item, int ma
   if (machine_code_p) {
     code = target_translate (gen_ctx, &code_len);
     machine_code = func_item->u.func->call_addr = _MIR_publish_code (ctx, code, code_len);
+    if (machine_code == NULL) goto gen_code_fail;
     target_rebase (gen_ctx, func_item->u.func->call_addr);
 #if MIR_GEN_CALL_TRACE
     func_item->u.func->call_addr = _MIR_get_wrapper (ctx, func_item, print_and_execute_wrapper);
@@ -9500,6 +9501,13 @@ static void *generate_func_code (MIR_context_t ctx, MIR_item_t func_item, int ma
   /* ??? We should use atomic here but c2mir does not implement them yet.  */
   func_item->u.func->machine_code = machine_code;
   return func_item->addr;
+
+gen_code_fail:
+  if (optimize_level != 0) destroy_loop_tree (gen_ctx, curr_cfg->root_loop_node);
+  destroy_func_cfg (gen_ctx);
+  _MIR_restore_func_insns (ctx, func_item);
+  func_item->u.func->call_addr = NULL;
+  return NULL;
 }
 
 void *MIR_gen (MIR_context_t ctx, MIR_item_t func_item) {
