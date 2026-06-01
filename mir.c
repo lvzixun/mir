@@ -866,6 +866,8 @@ static void remove_module (MIR_context_t ctx, MIR_module_t module, int free_modu
   MIR_item_t item;
 
   while ((item = DLIST_HEAD (MIR_item_t, module->items)) != NULL) {
+    const char *name = MIR_item_name (ctx, item);
+    if (name != NULL && item_tab_find (ctx, name, module) == item) item_tab_remove (ctx, item);
     DLIST_REMOVE (MIR_item_t, module->items, item);
     remove_item (ctx, item);
   }
@@ -1768,6 +1770,18 @@ void MIR_finish_module (MIR_context_t ctx) {
   if (curr_module == NULL)
     MIR_get_error_func (ctx) (MIR_no_module_error, "finish of non-existing module");
   curr_module = NULL;
+}
+
+void MIR_remove_module (MIR_context_t ctx, MIR_module_t m) {
+  if (m == NULL)
+    return;
+  if (curr_module == m) {
+    curr_module = NULL;
+    curr_func = NULL;
+    curr_label_num = 0;
+  }
+  DLIST_REMOVE (MIR_module_t, all_modules, m);
+  remove_module (ctx, m, TRUE);
 }
 
 static int setup_global (MIR_context_t ctx, const char *name, void *addr, MIR_item_t def) {
