@@ -9292,6 +9292,7 @@ static void *generate_func_code (MIR_context_t ctx, MIR_item_t func_item, int ma
     });
     return func_item->addr;
   }
+  func_item->u.func->machine_code_len = 0;
   DEBUG (0, {
     fprintf (debug_file, "Code generation of function %s:\n", MIR_item_name (ctx, func_item));
   });
@@ -9475,6 +9476,7 @@ static void *generate_func_code (MIR_context_t ctx, MIR_item_t func_item, int ma
     code = target_translate (gen_ctx, &code_len);
     machine_code = func_item->u.func->call_addr = _MIR_publish_code (ctx, code, code_len);
     if (machine_code == NULL) goto gen_code_fail;
+    func_item->u.func->machine_code_len = code_len;
     target_rebase (gen_ctx, func_item->u.func->call_addr);
 #if MIR_GEN_CALL_TRACE
     func_item->u.func->call_addr = _MIR_get_wrapper (ctx, func_item, print_and_execute_wrapper);
@@ -9507,11 +9509,16 @@ gen_code_fail:
   destroy_func_cfg (gen_ctx);
   _MIR_restore_func_insns (ctx, func_item);
   func_item->u.func->call_addr = NULL;
+  func_item->u.func->machine_code_len = 0;
   return NULL;
 }
 
 void *MIR_gen (MIR_context_t ctx, MIR_item_t func_item) {
   return generate_func_code (ctx, func_item, TRUE);
+}
+
+size_t MIR_gen_code_size (MIR_item_t func_item) {
+  return func_item->u.func->machine_code_len;
 }
 
 void MIR_gen_set_debug_file (MIR_context_t ctx, FILE *f) {
