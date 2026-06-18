@@ -88,3 +88,8 @@ static struct MIR_code_alloc default_code_alloc = {
   .mem_protect = default_mem_protect,
   .user_data = NULL
 };
+
+void MIR_get_default_code_alloc (MIR_code_alloc_t code_alloc) {
+  assert (code_alloc != NULL);
+  *code_alloc = default_code_alloc;
+}

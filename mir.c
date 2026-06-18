@@ -4392,10 +4392,6 @@ static code_holder_t *get_last_code_holder (MIR_context_t ctx, size_t size) {
   }
   npages = (size + page_size) / page_size;
   len = page_size * npages;
-  if (ctx->code_alloc->min_code_block_size > len) {
-    size_t min = ctx->code_alloc->min_code_block_size;
-    len = ((min + page_size - 1) / page_size) * page_size;
-  }
   mem = (uint8_t *) MIR_mem_map (ctx->code_alloc, len);
   if (mem == MAP_FAILED) return NULL;
   ch.start = mem;
@@ -4446,9 +4442,6 @@ uint8_t *_MIR_publish_code (MIR_context_t ctx, const uint8_t *code,
   code_holder_t *ch_ptr;
   uint8_t *res = NULL;
 
-  if (ctx->code_alloc->code_reserve != NULL
-      && ctx->code_alloc->code_reserve (code_len, ctx->code_alloc->user_data) != 0)
-    return NULL;
   if ((ch_ptr = get_last_code_holder (ctx, code_len)) != NULL)
     res = add_code (ctx, ch_ptr, code, code_len);
   return res;
@@ -4459,9 +4452,6 @@ uint8_t *_MIR_publish_code_by_addr (MIR_context_t ctx, void *addr, const uint8_t
   code_holder_t *ch_ptr = get_last_code_holder (ctx, 0);
   uint8_t *res = NULL;
 
-  if (ctx->code_alloc->code_reserve != NULL
-      && ctx->code_alloc->code_reserve (code_len, ctx->code_alloc->user_data) != 0)
-    return NULL;
   if (ch_ptr != NULL && ch_ptr->free == addr && ch_ptr->free + code_len <= ch_ptr->bound)
     res = add_code (ctx, ch_ptr, code, code_len);
   return res;

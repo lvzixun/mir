@@ -22,10 +22,10 @@ typedef struct MIR_code_alloc {
   void *(*mem_map) (size_t, void *);
   int (*mem_unmap) (void *, size_t, void *);
   int (*mem_protect) (void *, size_t, MIR_mem_protect_t, void *);
-  int (*code_reserve) (size_t, void *);
-  size_t min_code_block_size;
   void *user_data;
 } *MIR_code_alloc_t;
+
+extern void MIR_get_default_code_alloc (MIR_code_alloc_t code_alloc);
 
 static inline void *MIR_mem_map (MIR_code_alloc_t code_alloc, size_t len) {
   return code_alloc->mem_map (len, code_alloc->user_data);
