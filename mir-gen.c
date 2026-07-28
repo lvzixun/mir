@@ -208,6 +208,7 @@ struct gen_ctx {
   MIR_context_t ctx;
   unsigned optimize_level; /* 0:fast gen; 1:RA+combiner; 2: +GVN/CCP (default); >=3: everything  */
   MIR_item_t curr_func_item;
+  MIR_gen_stats_t stats;
 #if !MIR_NO_GEN_DEBUG
   FILE *debug_file;
   int debug_level;
@@ -250,6 +251,7 @@ struct gen_ctx {
 
 #define optimize_level gen_ctx->optimize_level
 #define curr_func_item gen_ctx->curr_func_item
+#define gen_stats gen_ctx->stats
 #define debug_file gen_ctx->debug_file
 #define debug_level gen_ctx->debug_level
 #define to_free gen_ctx->to_free
@@ -7808,6 +7810,10 @@ static MIR_reg_t add_ld_st (gen_ctx_t gen_ctx, MIR_op_t *mem_op, MIR_reg_t loc, 
         DLIST_INSERT_BEFORE (bb_insn_t, bb_insn->bb->bb_insns, bb_insn, new_bb_insn);
     }
   }
+  if (st_p)
+    gen_stats.ra_spill_store_count++;
+  else
+    gen_stats.ra_reload_load_count++;
   return hard_reg;
 }
 
@@ -9521,6 +9527,16 @@ size_t MIR_gen_code_size (MIR_item_t func_item) {
   return func_item->u.func->machine_code_len;
 }
 
+void MIR_gen_reset_stats (MIR_context_t ctx) {
+  gen_ctx_t gen_ctx = *gen_ctx_loc (ctx);
+  memset (&gen_stats, 0, sizeof (gen_stats));
+}
+
+void MIR_gen_get_stats (MIR_context_t ctx, MIR_gen_stats_t *stats) {
+  gen_ctx_t gen_ctx = *gen_ctx_loc (ctx);
+  *stats = gen_stats;
+}
+
 void MIR_gen_set_debug_file (MIR_context_t ctx, FILE *f) {
 #if !MIR_NO_GEN_DEBUG
   gen_ctx_t gen_ctx = *gen_ctx_loc (ctx);
@@ -9662,6 +9678,7 @@ void MIR_gen_init (MIR_context_t ctx) {
 
   gen_ctx->ctx = ctx;
   optimize_level = 2;
+  memset (&gen_stats, 0, sizeof (gen_stats));
   gen_ctx->target_ctx = NULL;
   gen_ctx->data_flow_ctx = NULL;
   gen_ctx->gvn_ctx = NULL;

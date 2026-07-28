@@ -227,6 +227,12 @@ target_link_libraries(gen_sieve mir)
 add_test(gen-test-loop gen_loop)
 add_test(gen-test-sieve gen_sieve)
 
+add_executable (gen_stats "mir-tests/gen-stats.c")
+target_include_directories(gen_stats PRIVATE ${PROJECT_SOURCE_DIR})
+target_link_libraries(gen_stats mir)
+
+add_test(gen-stats-test gen_stats)
+
 # ------------------ readme example test ----------------
 
 add_executable (readme_example "mir-tests/readme-example.c")
